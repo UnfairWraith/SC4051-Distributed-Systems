@@ -28,7 +28,7 @@ public class Unmarshalling {
     // [0-3]: requestId (int, 4 bytes)
     // [4]: operation ordinal (byte, 1 byte)
     // [5-end]: account string (remaining bytes)
-    public static BankRequest unmarshalRequest(byte[] data, java.net.InetAddress clientAddress, int clientPort) {
+    public static OperationRequest unmarshalRequest(byte[] data, java.net.InetAddress clientAddress, int clientPort) {
         int requestId = unmarshalInt(data, 0);
         Operation operation = unmarshalOperation(data, 4);
 
@@ -104,8 +104,9 @@ public class Unmarshalling {
                 break;
         }
 
-        OperationRequest opReq = new OperationRequest(operation, amount, account, destAccount);
-        BankRequest bankReq = new BankRequest(requestId, clientAddress, clientPort, opReq);
-        return bankReq;
+        OperationRequest opReq = new OperationRequest(operation, requestId, timeInterval,
+            clientAddress.getHostAddress(), clientPort,
+            amount, account, destAccount);
+        return opReq;
     }
 }

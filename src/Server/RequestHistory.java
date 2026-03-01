@@ -4,18 +4,18 @@ import java.net.InetAddress;
 import java.util.ArrayList;
 
 public class RequestHistory {
-    private ArrayList<BankRequest> requestHistory;
+    private ArrayList<OperationRequest> requestHistory;
 
     public RequestHistory() {
         this.requestHistory = new ArrayList<>();
     }
 
-    public void addRequest(BankRequest request) {
+    public void addRequest(OperationRequest request) {
         requestHistory.add(request);
     }
 
-    public BankRequest findRequestById(int requestId, InetAddress clientAddress, int clientPort) {
-        for (BankRequest request : requestHistory) {
+    public OperationRequest findRequestById(int requestId, InetAddress clientAddress, int clientPort) {
+        for (OperationRequest request : requestHistory) {
             if (request.getRequestId() == requestId && 
                 request.getClientAddress().equals(clientAddress) && 
                 request.getClientPort() == clientPort) {
