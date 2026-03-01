@@ -10,10 +10,13 @@ public class BankRequest {
     private boolean isSuccessful;
     private byte[] responseMsg;
 
-    public BankRequest(int requestId, InetAddress clientAddress, int clientPort) {
+    private OperationRequest operationRequest;
+
+    public BankRequest(int requestId, InetAddress clientAddress, int clientPort, OperationRequest operationRequest) {
         this.requestId = requestId;
         this.clientAddress = clientAddress;
         this.clientPort = clientPort;
+        this.operationRequest = operationRequest;
         this.isProcessed = false;
         this.isSuccessful = false;
     }
@@ -52,5 +55,13 @@ public class BankRequest {
 
     public void setResponseMsg(byte[] responseMsg) {
         this.responseMsg = responseMsg;
+    }
+
+    public OperationRequest getOperationRequest() {
+        return operationRequest;
+    }
+
+    public void setOperationRequest(OperationRequest operationRequest) {
+        this.operationRequest = operationRequest;
     }
 }

@@ -160,3 +160,6 @@ other ports may be blocked.
 
 **For the remaining design and implementation details, make your own
 reasonable assumptions and decisions.**
+
+### Compile
+javac -d bin src\Server\*.java

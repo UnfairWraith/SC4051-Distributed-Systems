@@ -11,7 +11,7 @@ public class PacketDrop {
         this.random = new Random();
     }
 
-    public boolean shouldDropPacket() {
+    public boolean shouldDrop() {
         return random.nextDouble() < DROP_RATE;
     }
 }

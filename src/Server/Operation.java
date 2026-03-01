@@ -5,7 +5,7 @@ public enum Operation {
     CLOSE_ACCT,
     DEPOSIT,
     WITHDRAW,
-    REGISTER,
+    MONITOR,
     VIEW_TX_HISTORY,
     TRANSFER
 }

@@ -31,12 +31,81 @@ public class Unmarshalling {
     public static BankRequest unmarshalRequest(byte[] data, java.net.InetAddress clientAddress, int clientPort) {
         int requestId = unmarshalInt(data, 0);
         Operation operation = unmarshalOperation(data, 4);
-        String account = unmarshalString(data, 5, data.length - 5);
 
-        // You may want to extend BankRequest to include operation/account if needed
-        BankRequest req = new BankRequest(requestId, clientAddress, clientPort);
-        // Optionally, set additional fields on req if you add them to BankRequest
-        // e.g., req.setOperation(operation); req.setAccount(account);
-        return req;
+        String name = null;
+        String password = null;
+        String currencyType = null;
+        String account = null;
+        String destAccount = null;
+        int amount = 0;
+        int balance = 0;
+        int timeInterval = 0;
+
+        switch (operation) {
+            case OPEN_ACCT:
+                // [5-24]: name (20 bytes)
+                // [25-44]: password (20 bytes)
+                // [45-54]: currencyType (10 bytes)
+                // [55-58]: balance (int, 4 bytes)
+                name = unmarshalString(data, 5, 20);
+                password = unmarshalString(data, 25, 20);
+                currencyType = unmarshalString(data, 45, 10);
+                balance = unmarshalInt(data, 55);
+                break;
+            case CLOSE_ACCT:
+                // [5-24]: name (20 bytes)
+                // [25-44]: accountNumber (20 bytes)
+                // [45-64]: password (20 bytes)
+                name = unmarshalString(data, 5, 20);
+                account = unmarshalString(data, 25, 20);
+                password = unmarshalString(data, 45, 20);
+                break;
+            case DEPOSIT:
+            case WITHDRAW:
+                // [5-24]: name (20 bytes)
+                // [25-44]: accountNumber (20 bytes)
+                // [45-64]: password (20 bytes)
+                // [65-74]: currencyType (10 bytes)
+                // [75-78]: amount (int, 4 bytes)
+                name = unmarshalString(data, 5, 20);
+                account = unmarshalString(data, 25, 20);
+                password = unmarshalString(data, 45, 20);
+                currencyType = unmarshalString(data, 65, 10);
+                amount = unmarshalInt(data, 75);
+                break;
+            case MONITOR:
+                // [5-8]: timeInterval (int, 4 bytes)
+                timeInterval = unmarshalInt(data, 5);
+                break;
+            case VIEW_TX_HISTORY:
+                // [5-24]: name (20 bytes)
+                // [25-44]: accountNumber (20 bytes)
+                // [45-64]: password (20 bytes)
+                name = unmarshalString(data, 5, 20);
+                account = unmarshalString(data, 25, 20);
+                password = unmarshalString(data, 45, 20);
+                break;
+            case TRANSFER:
+                // [5-24]: name (20 bytes)
+                // [25-44]: password (20 bytes)
+                // [45-64]: sourceAccountNumber (20 bytes)
+                // [65-84]: destAccountNumber (20 bytes)
+                // [85-94]: currencyType (10 bytes)
+                // [95-98]: amount (int, 4 bytes)
+                name = unmarshalString(data, 5, 20);
+                password = unmarshalString(data, 25, 20);
+                account = unmarshalString(data, 45, 20);
+                destAccount = unmarshalString(data, 65, 20);
+                currencyType = unmarshalString(data, 85, 10);
+                amount = unmarshalInt(data, 95);
+                break;
+            default:
+                // Handle unknown operation if needed
+                break;
+        }
+
+        OperationRequest opReq = new OperationRequest(operation, amount, account, destAccount);
+        BankRequest bankReq = new BankRequest(requestId, clientAddress, clientPort, opReq);
+        return bankReq;
     }
 }

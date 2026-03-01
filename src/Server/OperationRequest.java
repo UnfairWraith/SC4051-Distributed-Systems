@@ -2,21 +2,15 @@ package Server;
 
 public class OperationRequest {
     private Operation operationType;//operation type of the request
-    private int requestId;//request id of the request
+    private int amount;//amount involved in the operation
     private String account;//account involved in the operation
     private String targetAccount;//target account for transfer operations (optional)
-    private int clientPort;//client port
-    private String clientAddress;//client address
-    private long timestamp;//timestamp of the update operation
     
-    public OperationRequest(Operation operationType, int requestId, String account, String targetAccount, int clientPort, String clientAddress, long timestamp) {
+    public OperationRequest(Operation operationType, int amount, String account, String targetAccount) {
         this.operationType = operationType;
-        this.requestId = requestId;
+        this.amount = amount;
         this.account = account;
         this.targetAccount = targetAccount;
-        this.clientPort = clientPort;
-        this.clientAddress = clientAddress;
-        this.timestamp = timestamp;
     }
 
     public Operation getOperationType() {
@@ -27,12 +21,12 @@ public class OperationRequest {
         this.operationType = operationType;
     }
 
-    public int getRequestId() {
-        return requestId;
+    public int getAmount() {
+        return amount;
     }
 
-    public void setRequestId(int requestId) {
-        this.requestId = requestId;
+    public void setAmount(int amount) {
+        this.amount = amount;
     }
 
     public String getAccount() {
@@ -49,29 +43,5 @@ public class OperationRequest {
 
     public void setTargetAccount(String targetAccount) {
         this.targetAccount = targetAccount;
-    }
-
-    public int getClientPort() {
-        return clientPort;
-    }
-
-    public void setClientPort(int clientPort) {
-        this.clientPort = clientPort;
-    }
-
-    public String getClientAddress() {
-        return clientAddress;
-    }
-
-    public void setClientAddress(String clientAddress) {
-        this.clientAddress = clientAddress;
-    }
-
-    public long getTimestamp() {
-        return timestamp;
-    }
-
-    public void setTimestamp(long timestamp) {
-        this.timestamp = timestamp;
     }
 }
