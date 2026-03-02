@@ -38,11 +38,10 @@ public class Unmarshalling {
         String account = null;
         String destAccount = null;
         int amount = 0;
-        int balance = 0;
         int timeInterval = 0;
 
         switch (operation) {
-            case OPEN_ACCT:
+            case OPEN_ACCT -> {
                 // [5-24]: name (20 bytes)
                 // [25-44]: password (20 bytes)
                 // [45-54]: currencyType (10 bytes)
@@ -50,18 +49,17 @@ public class Unmarshalling {
                 name = unmarshalString(data, 5, 20);
                 password = unmarshalString(data, 25, 20);
                 currencyType = unmarshalString(data, 45, 10);
-                balance = unmarshalInt(data, 55);
-                break;
-            case CLOSE_ACCT:
+                amount = unmarshalInt(data, 55);
+            }
+            case CLOSE_ACCT -> {
                 // [5-24]: name (20 bytes)
                 // [25-44]: accountNumber (20 bytes)
                 // [45-64]: password (20 bytes)
                 name = unmarshalString(data, 5, 20);
                 account = unmarshalString(data, 25, 20);
                 password = unmarshalString(data, 45, 20);
-                break;
-            case DEPOSIT:
-            case WITHDRAW:
+            }
+            case DEPOSIT, WITHDRAW -> {
                 // [5-24]: name (20 bytes)
                 // [25-44]: accountNumber (20 bytes)
                 // [45-64]: password (20 bytes)
@@ -72,20 +70,20 @@ public class Unmarshalling {
                 password = unmarshalString(data, 45, 20);
                 currencyType = unmarshalString(data, 65, 10);
                 amount = unmarshalInt(data, 75);
-                break;
-            case MONITOR:
+            }
+            case MONITOR -> {
                 // [5-8]: timeInterval (int, 4 bytes)
                 timeInterval = unmarshalInt(data, 5);
-                break;
-            case VIEW_TX_HISTORY:
+            }
+            case VIEW_TX_HISTORY -> {
                 // [5-24]: name (20 bytes)
                 // [25-44]: accountNumber (20 bytes)
                 // [45-64]: password (20 bytes)
                 name = unmarshalString(data, 5, 20);
                 account = unmarshalString(data, 25, 20);
                 password = unmarshalString(data, 45, 20);
-                break;
-            case TRANSFER:
+            }
+            case TRANSFER -> {
                 // [5-24]: name (20 bytes)
                 // [25-44]: password (20 bytes)
                 // [45-64]: sourceAccountNumber (20 bytes)
@@ -98,15 +96,16 @@ public class Unmarshalling {
                 destAccount = unmarshalString(data, 65, 20);
                 currencyType = unmarshalString(data, 85, 10);
                 amount = unmarshalInt(data, 95);
-                break;
-            default:
+            }
+            default -> {
                 // Handle unknown operation if needed
-                break;
+            }
         }
-
-        OperationRequest opReq = new OperationRequest(operation, requestId, timeInterval,
-            clientAddress.getHostAddress(), clientPort,
-            amount, account, destAccount);
+        
+        OperationRequest opReq = new OperationRequest(operation, requestId, timeInterval, clientAddress.getHostAddress(), clientPort, 
+                                                        name, account != null ? Integer.parseInt(account.trim()) : 0, 
+                                                        password, currencyType != null ? Currency.valueOf(currencyType.trim().toUpperCase()) : null, 
+                                                        amount, destAccount != null ? Integer.parseInt(destAccount.trim()) : 0);
         return opReq;
     }
 }

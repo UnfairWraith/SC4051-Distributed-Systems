@@ -31,10 +31,11 @@ public class Server {
         printIPAddress();
         requestHistory = new RequestHistory();
         BankAccountRepo repo = new BankAccountRepo();
+        BankService bankService = new BankService(repo);
         PacketDrop packetDropSimulator = new PacketDrop(packetDrop);
         DatagramSocket aSocket = initializeSocket(6789);
         if (aSocket != null) {
-            listenForRequests(aSocket, packetDropSimulator);
+            listenForRequests(aSocket, packetDropSimulator, bankService);
         }
     }
 
@@ -55,7 +56,7 @@ public class Server {
         }
     }
 
-    public static void listenForRequests(DatagramSocket socket, PacketDrop packetDropSimulator) {
+    public static void listenForRequests(DatagramSocket socket, PacketDrop packetDropSimulator, BankService bankService) {
         byte[] buffer = new byte[1000];
         System.out.println("Server is running and waiting for client requests...");
         try (socket) {
@@ -64,10 +65,9 @@ public class Server {
                 socket.receive(request);
                 if (packetDropSimulator.shouldDrop()) {
                     System.out.println("Packet dropped from: " + request.getAddress() + ":" + request.getPort());
-                    continue; // Skip processing this request
                 } else {
                     System.out.println("Received request from: " + request.getAddress() + ":" + request.getPort());
-                    handleRequest(request, socket);
+                    handleRequest(request, socket, bankService);
                 }
             }
         } catch (Exception e) {
@@ -75,7 +75,7 @@ public class Server {
         }
     }
 
-    public static void handleRequest(DatagramPacket request, DatagramSocket socket) {
+    public static void handleRequest(DatagramPacket request, DatagramSocket socket, BankService bankService) {
         System.out.println("Received request: " + request);
         InetAddress clientAddress = request.getAddress();
         int clientPort = request.getPort();
@@ -102,51 +102,62 @@ public class Server {
                     System.out.println("No response found for duplicate request");
                 }
             } else { // Process the request and store the response in history
-                response = processRequest(opReq);
+                response = processRequest(opReq, bankService);
                 sendResponse(socket, clientAddress, clientPort, response);
-                opReq.setProcessed(true);
+                opReq.setProcessed();
                 opReq.setResponseMsg(response);
                 // add the request to history after processing
                 requestHistory.addRequest(opReq);
             }
         } else if (semantic.equals("at-least-once")) { // Process the request without checking for duplicates
-            response = processRequest(opReq);
+            response = processRequest(opReq, bankService);
             sendResponse(socket, clientAddress, clientPort, response);
-            opReq.setProcessed(true);
+            opReq.setProcessed();
             opReq.setResponseMsg(response);
             // add the request to history after processing
             requestHistory.addRequest(opReq);
             }
     }
 
-    public static byte[] processRequest(OperationRequest opReq) {
-        // TODO - Implement the logic to process the request based on the operation type and return the appropriate response
+    public static byte[] processRequest(OperationRequest opReq, BankService bankService) {
         byte[] response = "filler response".getBytes();
         switch(opReq.getOperationType()) {
-            case OPEN_ACCT:
+            case OPEN_ACCT -> {
                 // Handle open account operation
-                break;
-            case CLOSE_ACCT:
+                BankAccount account = bankService.openAccount(opReq.getName(), opReq.getPassword(), opReq.getCurrencyType(), opReq.getAmount());
+                response = ("Account opened successfully. Account Number: " + account.getAccountNumber()).getBytes();
+            }
+            case CLOSE_ACCT -> {
                 // Handle close account operation
-                break;
-            case DEPOSIT:
+                bankService.closeAccount(opReq.getName(), opReq.getAccountNumber(), opReq.getPassword());
+                response = "Account closed successfully.".getBytes();
+            }
+            case DEPOSIT -> {
                 // Handle deposit operation
-                break;
-            case WITHDRAW:
+                bankService.deposit(opReq.getName(), opReq.getAccountNumber(), opReq.getPassword(), opReq.getCurrencyType(), opReq.getAmount());
+                response = "Deposit successful.".getBytes();
+            }
+            case WITHDRAW -> {
                 // Handle withdraw operation
-                break;
-            case MONITOR:
-                // Handle monitor operation
-                break;
-            case VIEW_TX_HISTORY:
+                bankService.processWithdrawal(opReq.getName(), opReq.getAccountNumber(), opReq.getPassword(), opReq.getCurrencyType(), opReq.getAmount());
+                response = "Withdrawal successful.".getBytes();
+            }
+            case MONITOR -> // Handle monitor operation
+                // bankService.monitor(opReq.getAccountNumber(), opReq.getMonitorTimeInterval(), opReq.getClientAddress(), opReq.getClientPort());
+                response = "Monitoring started.".getBytes();
+            case VIEW_TX_HISTORY -> {
                 // Handle view transaction history operation
-                break;
-            case TRANSFER:
+                bankService.viewTransactionHistory(opReq.getName(), opReq.getAccountNumber(), opReq.getPassword());
+                response = "Transaction history retrieved.".getBytes();
+            }
+            case TRANSFER -> {
                 // Handle transfer operation
-                break;
-            default:
+                bankService.transfer(opReq.getAccountNumber(), opReq.getTargetAccountNumber(), opReq.getAmount());
+                response = "Transfer successful.".getBytes();
+            }
+            default -> {
                 // Handle unknown operation
-                break;
+            }
         }
         return response;
     }

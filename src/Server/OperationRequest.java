@@ -1,28 +1,37 @@
 package Server;
 
+import java.security.MessageDigest;
+import java.util.Base64;
+
 public class OperationRequest {
-    private Operation operationType;//operation type of the request
-    private int requestId;//requestId of the request
-    private int monitorTimeInterval;//monitor time interval for monitor operations
-    private String clientAddress;//client address for monitor operations
-    private int clientPort;//client port for monitor operations
-    private int amount;//amount involved in the operation
-    private String account;//account involved in the operation
-    private String targetAccount;//target account for transfer operations
+    private final Operation operationType;//operation type of the request
+    private final int requestId;//requestId of the request
+    private final String name;//name of the client for authentication
+    private final int accountNumber;//account number for authentication
+    private final String hashedPassword;//hashed password for authentication
+    private final Currency currencyType;//currency type for deposit, withdraw, and transfer operations
+    private final int amount;//amount involved in the operation
+    private final int targetAccountNumber;//target account number for transfer operations
+    private final int monitorTimeInterval;//monitor time interval for monitor operations
+    private final String clientAddress;//client address for monitor operations
+    private final int clientPort;//client port for monitor operations
     private boolean isProcessed;
     private byte[] responseMsg;
 
     public OperationRequest(Operation operationType, int requestId, 
             int monitorTimeInterval, String clientAddress, int clientPort,
-            int amount, String account, String targetAccount) {
+            String name, int accountNumber, String password, Currency currencyType, int amount, int targetAccountNumber) {
         this.operationType = operationType;
         this.requestId = requestId;
+        this.name = name;
+        this.accountNumber = accountNumber;
+        this.hashedPassword = hashPassword(password);
+        this.currencyType = currencyType;
+        this.amount = amount;
+        this.targetAccountNumber = targetAccountNumber;
         this.monitorTimeInterval = monitorTimeInterval;
         this.clientAddress = clientAddress;
         this.clientPort = clientPort;
-        this.amount = amount;
-        this.account = account;
-        this.targetAccount = targetAccount;
         isProcessed = false;
         responseMsg = null;
     }
@@ -33,72 +42,53 @@ public class OperationRequest {
         return operationType;
     }
 
-    public void setOperationType(Operation operationType) {
-        this.operationType = operationType;
+    public int getRequestId() {
+        return requestId;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public int getAccountNumber() {
+        return accountNumber;
+    }
+
+    public String getPassword() {
+        return hashedPassword;
+    }
+
+    public Currency getCurrencyType() {
+        return currencyType;
     }
 
     public int getAmount() {
         return amount;
     }
 
-    public void setAmount(int amount) {
-        this.amount = amount;
+    public int getTargetAccountNumber() {
+        return targetAccountNumber;
     }
 
-    public String getAccount() {
-        return account;
-    }
-
-    public void setAccount(String account) {
-        this.account = account;
-    }
-
-    public String getTargetAccount() {
-        return targetAccount;
-    }
-
-    public void setTargetAccount(String targetAccount) {
-        this.targetAccount = targetAccount;
-    }
-
-    public int getRequestId() {
-        return requestId;
-    }
-
-    public void setRequestId(int requestId) {
-        this.requestId = requestId;
-    }
 
     public int getMonitorTimeInterval() {
         return monitorTimeInterval;
-    }
-
-    public void setMonitorTimeInterval(int monitorTimeInterval) {
-        this.monitorTimeInterval = monitorTimeInterval;
     }
 
     public String getClientAddress() {
         return clientAddress;
     }
 
-    public void setClientAddress(String clientAddress) {
-        this.clientAddress = clientAddress;
-    }
-
     public int getClientPort() {
         return clientPort;
-    }
-
-    public void setClientPort(int clientPort) {
-        this.clientPort = clientPort;
     }
 
     public boolean isProcessed() {
         return isProcessed;
     }
 
-    public void setProcessed(boolean isProcessed) {
-        this.isProcessed = isProcessed;
+    public void setProcessed() {
+        this.isProcessed = true;
     }
 
     public byte[] getResponseMsg() {
@@ -107,5 +97,15 @@ public class OperationRequest {
 
     public void setResponseMsg(byte[] responseMsg) {
         this.responseMsg = responseMsg;
+    }
+
+       public static String hashPassword(String password) {
+        try {
+            MessageDigest digest = MessageDigest.getInstance("SHA-256");
+            byte[] hash = digest.digest(password.getBytes());
+            return Base64.getEncoder().encodeToString(hash);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 }

@@ -1,22 +1,22 @@
 package Server;
 
-import java.security.MessageDigest;
-import java.util.Base64;
 import java.util.Objects;
 
 public class BankAccount {
     private final int accountNumber;
     private String name;
-    private String password;
+    private String hashedPassword;
     private Currency currencyType;
     private int balance;
+    private RequestHistory transactionHistory;
 
     public BankAccount(String name, String password, Currency currencyType, int balance) {
         this.accountNumber = Objects.hash(name, password, System.currentTimeMillis());
         this.name = name;
-        this.password = hashPassword(password);
+        this.hashedPassword = password; // In a real app, this would be a hashed password
         this.currencyType = currencyType;
         this.balance = balance;
+        this.transactionHistory = new RequestHistory();
     }
 
     // Overloaded constructor to allow currency type as a string
@@ -43,7 +43,7 @@ public class BankAccount {
     }
 
     public boolean verifyPassword(String password) {
-        return this.password.equals(hashPassword(password)); // Hopefully this works
+        return this.hashedPassword.equals(password);
     }
   
     public int getBalance() { 
@@ -68,13 +68,11 @@ public class BankAccount {
         return false;
     }
 
-    public static String hashPassword(String password) {
-        try {
-            MessageDigest digest = MessageDigest.getInstance("SHA-256");
-            byte[] hash = digest.digest(password.getBytes());
-            return Base64.getEncoder().encodeToString(hash);
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
+    public RequestHistory getTransactionHistory() {
+        return this.transactionHistory;
+    }
+
+    public void appendTransactionHistory(OperationRequest request) {
+        this.transactionHistory.addRequest(request);
     }
 }

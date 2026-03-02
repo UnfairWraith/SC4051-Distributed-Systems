@@ -13,6 +13,13 @@ public class BankService {
         return account;
     }
 
+    // Overloaded method to allow currency type as an enum
+    public BankAccount openAccount(String name, String password, Currency currencyType, int initialDeposit) {
+        BankAccount account = new BankAccount(name, password, currencyType, initialDeposit);
+        accountRepo.addAccount(account);
+        return account;
+    }
+
     public void closeAccount(String name, int accountNumber, String password) {
         BankAccount account = accountRepo.getAccount(accountNumber);
         if (account != null && account.verifyName(name) && account.verifyPassword(password)) {
@@ -50,17 +57,26 @@ public class BankService {
         }
     }
 
-    public void monitor(String account, int timeInterval, String clientAddress, int clientPort) {
+    public void monitor(int accountNumber, int timeInterval, String clientAddress, int clientPort) {
         // Implementation for monitoring an account
     }
 
-    public void viewTransactionHistory(String account) {
+    public RequestHistory viewTransactionHistory(String name, int accountNumber, String password) {
         // Implementation for viewing transaction history of an account
+        BankAccount account = accountRepo.getAccount(accountNumber);
+        // Verify account credentials
+        if (account != null && account.verifyName(name) && account.verifyPassword(password)) {
+            // Return transaction history for the account
+            return account.getTransactionHistory();
+        } else {
+            System.out.println("Account verification failed. Please check your credentials.");
+            return null;
+        }
     }
 
-    public void transfer(String sourceAccount, String targetAccount, int amount) {
-        BankAccount source = accountRepo.getAccount(Integer.parseInt(sourceAccount));
-        BankAccount target = accountRepo.getAccount(Integer.parseInt(targetAccount));
+    public void transfer(int sourceAccount, int targetAccount, int amount) {
+        BankAccount source = accountRepo.getAccount(sourceAccount);
+        BankAccount target = accountRepo.getAccount(targetAccount);
         if (source != null && target != null) {
             if (source.withdraw(amount, source.getCurrencyType())) {
                 target.deposit(amount, target.getCurrencyType());
