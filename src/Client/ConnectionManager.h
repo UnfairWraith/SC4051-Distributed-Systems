@@ -1,4 +1,8 @@
+#pragma once
+
+#include <cstdint>
 #include <string>
+#include <vector>
 #include <winsock2.h>
 
 class ConnectionManager {
@@ -6,20 +10,32 @@ public:
     ConnectionManager(const std::string& serverIp, int serverPort);
     ~ConnectionManager();
 
-    bool sendAndReceive(const std::string& message, std::string& response);
+    // Sends one UDP request and waits for a reply, retrying if needed.
+    bool sendAndReceive(
+        const std::vector<std::uint8_t>& message,
+        std::vector<std::uint8_t>& response,
+        int maxAttempts = 1
+    );
     
-    bool waitForMonitor(std::string& response); 
+    // Waits for a callback-style monitor update on the same socket.
+    bool waitForMonitor(std::vector<std::uint8_t>& response); 
+    bool setReceiveTimeout(int timeoutMilliseconds);
 
 private:
     std::string serverIp;
     int serverPort;
     SOCKET clientSocket;
+    sockaddr_in serverAddr;
 
     void initializeWinsock();
     void cleanupWinsock();
     void createSocket();
-    void connectToServer();
+    void configureServerAddress();
+    void bindSocket();
+    void configureDefaultTimeout();
 
-    void sendRequest(const std::string& message);
-    bool receiveResponse(std::string& response);
+    // Sends the already-marshalled request bytes to the configured server endpoint.
+    bool sendRequest(const std::vector<std::uint8_t>& message);
+    // Receives one full UDP datagram reply into a byte buffer.
+    bool receiveResponse(std::vector<std::uint8_t>& response);
 };
