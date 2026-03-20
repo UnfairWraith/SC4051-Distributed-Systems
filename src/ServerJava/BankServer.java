@@ -55,10 +55,10 @@ public final class BankServer {
         }
 
         BankServer server = new BankServer(port, invocationMode, requestLossRate, replyLossRate);
-        // System.out.println("Java UDP bank server listening on port " + port
-        // + " using " + invocationMode.label + " semantics"
-        // + " (requestLossRate=" + requestLossRate
-        // + ", replyLossRate=" + replyLossRate + ")");
+        System.out.println("Java UDP bank server listening on port " + port
+                + " using " + invocationMode.label + " semantics"
+                + " (requestLossRate=" + requestLossRate
+                + ", replyLossRate=" + replyLossRate + ")");
         server.run();
     }
 
@@ -352,7 +352,7 @@ public final class BankServer {
 
     private void sendReply(SocketAddress clientAddress, Protocol.Reply reply) throws Exception {
         if (shouldDrop(replyLossRate)) {
-            // System.out.println("Simulated reply loss for " + clientAddress);
+            System.out.println("Simulated reply loss for " + clientAddress);
             return;
         }
 
@@ -364,8 +364,8 @@ public final class BankServer {
                 InetAddress.getByAddress(address.getAddress().getAddress()),
                 address.getPort());
         socket.send(packet);
-        // System.out.println("Sent reply to " + clientAddress + ": " + payload.length +
-        // " raw bytes");
+        System.out.println("Sent reply to " + clientAddress + ": " + payload.length +
+                " raw bytes");
     }
 
     private String formatMoney(double value) {

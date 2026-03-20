@@ -154,9 +154,9 @@ namespace
         case 1:
         {
             auto request = createRequestHeader(protocol::Operation::Open);
-            const std::string currency = promptCurrency("Currency type (e.g. SGD, USD, EUR): ");
             protocol::appendString(request, prompt("Name: "));
             protocol::appendString(request, prompt("Password: "));
+            const std::string currency = promptCurrency("Currency type (e.g. SGD, USD, EUR): ");
             protocol::appendString(request, currency);
             protocol::appendDouble(request, promptDouble("Initial balance: "));
             return request;
@@ -172,10 +172,10 @@ namespace
         case 3:
         {
             auto request = createRequestHeader(protocol::Operation::Deposit);
-            const std::string currency = promptCurrency("Currency type (e.g. SGD, USD, EUR): ");
             protocol::appendString(request, prompt("Name: "));
             protocol::appendUint32(request, promptUint32("Account number: "));
             protocol::appendString(request, prompt("Password: "));
+            const std::string currency = promptCurrency("Currency type (e.g. SGD, USD, EUR): ");
             protocol::appendString(request, currency);
             protocol::appendDouble(request, promptDouble("Amount: "));
             return request;
@@ -183,10 +183,10 @@ namespace
         case 4:
         {
             auto request = createRequestHeader(protocol::Operation::Withdraw);
-            const std::string currency = promptCurrency("Currency type (e.g. SGD, USD, EUR): ");
             protocol::appendString(request, prompt("Name: "));
             protocol::appendUint32(request, promptUint32("Account number: "));
             protocol::appendString(request, prompt("Password: "));
+            const std::string currency = promptCurrency("Currency type (e.g. SGD, USD, EUR): ");
             protocol::appendString(request, currency);
             protocol::appendDouble(request, promptDouble("Amount: "));
             return request;
@@ -207,10 +207,10 @@ namespace
         case 7:
         {
             auto request = createRequestHeader(protocol::Operation::Transfer);
-            const std::string currency = promptCurrency("Currency type (e.g. SGD, USD, EUR): ");
             protocol::appendUint32(request, promptUint32("From account number: "));
             protocol::appendString(request, prompt("Password: "));
             protocol::appendUint32(request, promptUint32("To account number: "));
+            const std::string currency = promptCurrency("Currency type (e.g. SGD, USD, EUR): ");
             protocol::appendString(request, currency);
             protocol::appendDouble(request, promptDouble("Amount: "));
             return request;
