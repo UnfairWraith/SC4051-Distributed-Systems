@@ -14,8 +14,8 @@
 
 namespace
 {
-    const char *SERVER_IP = "127.0.0.1";
     const int SERVER_PORT = 2222;
+    const int MAX_RETRY_ATTEMPTS = 5;
     int reqId = 1;
     // The client validates currencies locally before sending the request.
     const std::vector<std::string> currencyList = {
@@ -25,36 +25,14 @@ namespace
         "EGP", "CZK", "HUF", "ILS", "CLP", "PKR", "VND", "PHP", "KWD", "QAR",
         "MAD"};
 
-    enum class InvocationMode
-    {
-        AtLeastOnce,
-        AtMostOnce
-    };
-
-    InvocationMode parseInvocationMode(int argc, char *argv[])
+    std::string parseServerIp(int argc, char *argv[])
     {
         if (argc < 2)
         {
-            return InvocationMode::AtMostOnce;
+            return {};
         }
 
-        const std::string mode = argv[1];
-        if (mode == "at-least-once")
-        {
-            return InvocationMode::AtLeastOnce;
-        }
-
-        return InvocationMode::AtMostOnce;
-    }
-
-    std::string invocationModeToString(InvocationMode mode)
-    {
-        return mode == InvocationMode::AtLeastOnce ? "at-least-once" : "at-most-once";
-    }
-
-    int retryAttemptsForMode(InvocationMode mode)
-    {
-        return mode == InvocationMode::AtLeastOnce ? 3 : 3;
+        return argv[1];
     }
 
     std::string prompt(const std::string &label)
@@ -325,11 +303,17 @@ namespace
 
 int main(int argc, char *argv[])
 {
-    const InvocationMode invocationMode = parseInvocationMode(argc, argv);
-    std::cout << "Client started. Sending UDP requests to " << SERVER_IP << ":" << SERVER_PORT
-              << " using " << invocationModeToString(invocationMode) << " semantics.\n";
+    const std::string serverIp = parseServerIp(argc, argv);
+    if (serverIp.empty())
+    {
+        std::cerr << "Usage: client.exe <server-ip>\n";
+        return 1;
+    }
 
-    ConnectionManager connectionManager(SERVER_IP, SERVER_PORT);
+    std::cout << "Client started. Sending UDP requests to " << serverIp << ":" << SERVER_PORT
+              << " with up to " << MAX_RETRY_ATTEMPTS << " attempts per request.\n";
+
+    ConnectionManager connectionManager(serverIp, SERVER_PORT);
 
     while (true)
     {
@@ -361,7 +345,7 @@ int main(int argc, char *argv[])
         std::cout << "Sending " << request.size() << " bytes: " << formatBytes(request) << '\n';
 
         std::vector<std::uint8_t> response;
-        if (connectionManager.sendAndReceive(request, response, retryAttemptsForMode(invocationMode)))
+        if (connectionManager.sendAndReceive(request, response, MAX_RETRY_ATTEMPTS))
         {
             protocol::Reply reply;
             if (protocol::deserializeReply(response, reply))

@@ -1,4 +1,6 @@
 #include "ConnectionManager.h"
+#include "../Common/Protocol.h"
+
 #include <iostream>
 #include <ws2tcpip.h>
 
@@ -25,13 +27,20 @@ bool ConnectionManager::sendAndReceive(
     std::vector<std::uint8_t>& response,
     int maxAttempts
 ) {
+    std::size_t offset = 0;
+    std::uint32_t requestId = 0;
+    if (!protocol::readUint32(message, offset, requestId)) {
+        std::cerr << "Unable to read request id from outbound message." << std::endl;
+        return false;
+    }
+
     // Retries are used to demonstrate at-least-once and at-most-once semantics.
     for (int attempt = 1; attempt <= maxAttempts; ++attempt) {
         if (!sendRequest(message)) {
             return false;
         }
 
-        if (receiveResponse(response)) {
+        if (receiveMatchingReply(requestId, response)) {
             return true;
         }
 
@@ -46,6 +55,12 @@ bool ConnectionManager::sendAndReceive(
 }
 
 bool ConnectionManager::waitForMonitor(std::vector<std::uint8_t>& response) {
+    if (!pendingMonitorUpdates.empty()) {
+        response = std::move(pendingMonitorUpdates.front());
+        pendingMonitorUpdates.pop_front();
+        return true;
+    }
+
     return receiveResponse(response);
 }
 
@@ -173,4 +188,31 @@ bool ConnectionManager::receiveResponse(std::vector<std::uint8_t>& response) {
     }
 
     return false;
+}
+
+bool ConnectionManager::receiveMatchingReply(std::uint32_t expectedRequestId, std::vector<std::uint8_t>& response) {
+    while (true) {
+        std::vector<std::uint8_t> candidate;
+        if (!receiveResponse(candidate)) {
+            return false;
+        }
+
+        protocol::Reply reply;
+        if (!protocol::deserializeReply(candidate, reply)) {
+            response = std::move(candidate);
+            return true;
+        }
+
+        if (reply.status == protocol::ReplyStatus::Update) {
+            pendingMonitorUpdates.push_back(std::move(candidate));
+            continue;
+        }
+
+        if (reply.requestId != expectedRequestId) {
+            continue;
+        }
+
+        response = std::move(candidate);
+        return true;
+    }
 }

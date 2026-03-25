@@ -37,13 +37,7 @@ java -cp out ServerJava.BankServer 2222 at-least-once 0.0 0.5
 ### 5. Run the client
 
 ```powershell
-.\client.exe at-most-once
-```
-
-or
-
-```powershell
-.\client.exe at-least-once
+.\client.exe 127.0.0.1
 ```
 
 ## Experiment Setup
@@ -53,7 +47,7 @@ Use reply loss to trigger client retries while allowing the server to receive an
 Recommended setup:
 
 1. Start the server with `requestLossRate=0.0` and `replyLossRate=0.5`.
-2. Start the client in the same invocation mode as the server.
+2. Start the client and point it at the server IP.
 3. Open two accounts with the same currency.
 4. Use `Transfer Money` as the non-idempotent operation.
 5. Use `Transaction History` as the idempotent operation.

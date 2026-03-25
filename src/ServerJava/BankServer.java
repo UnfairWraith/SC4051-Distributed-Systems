@@ -248,6 +248,7 @@ public final class BankServer {
         }
 
         Instant expiresAt = Instant.now().plusSeconds(intervalSeconds);
+        monitors.removeIf(registration -> registration.clientAddress.equals(clientAddress));
         monitors.add(new MonitorRegistration(clientAddress, expiresAt));
         String message = "Monitoring has started for " + intervalSeconds + " seconds.";
         return new Protocol.Reply(requestId, Protocol.STATUS_SUCCESS, message);
@@ -267,7 +268,7 @@ public final class BankServer {
                     "The password for this account is incorrect.");
         }
 
-        String message = String.join(" | ", account.getHistory());
+        String message = String.join("\n", account.getHistory());
         if (message.isEmpty()) {
             message = "No transaction history is available for this account.";
         }
@@ -315,8 +316,10 @@ public final class BankServer {
         toAccount.deposit(amount, "Received " + formatMoney(amount) + " " + currency.name()
                 + " from account " + fromAccountNumber);
 
-        String message = "Transfer completed successfully. New balance for source account " + fromAccountNumber
-                + ": " + formatMoney(fromAccount.getBalance()) + " " + currency.name() + ".";
+        String message = "Transfer completed successfully.\n New balance for source account " + fromAccountNumber
+                + ": " + formatMoney(fromAccount.getBalance()) + " " + currency.name()
+                + ".\n New balance for destination account " + toAccountNumber + ": "
+                + formatMoney(toAccount.getBalance()) + " " + currency.name() + ".";
         notifyMonitors("Transfer " + formatMoney(amount) + " " + currency.name() + " from account "
                 + fromAccountNumber + " to account " + toAccountNumber);
         return new Protocol.Reply(requestId, Protocol.STATUS_SUCCESS, message);
@@ -336,7 +339,7 @@ public final class BankServer {
 
         while (iterator.hasNext()) {
             MonitorRegistration registration = iterator.next();
-            if (registration.expiresAt.isBefore(now)) {
+            if (!registration.expiresAt.isAfter(now)) {
                 iterator.remove();
                 continue;
             }

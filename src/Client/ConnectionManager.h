@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cstdint>
+#include <deque>
 #include <string>
 #include <vector>
 #include <winsock2.h>
@@ -26,6 +27,7 @@ private:
     int serverPort;
     SOCKET clientSocket;
     sockaddr_in serverAddr;
+    std::deque<std::vector<std::uint8_t>> pendingMonitorUpdates;
 
     void initializeWinsock();
     void cleanupWinsock();
@@ -38,4 +40,5 @@ private:
     bool sendRequest(const std::vector<std::uint8_t>& message);
     // Receives one full UDP datagram reply into a byte buffer.
     bool receiveResponse(std::vector<std::uint8_t>& response);
+    bool receiveMatchingReply(std::uint32_t expectedRequestId, std::vector<std::uint8_t>& response);
 };
