@@ -160,7 +160,7 @@ bool ConnectionManager::sendRequest(const std::vector<std::uint8_t>& message) {
 }
 
 bool ConnectionManager::receiveResponse(std::vector<std::uint8_t>& response) {
-    std::uint8_t buffer[1024];
+    std::uint8_t buffer[4096];
     sockaddr_in fromAddr;
     int fromAddrLength = sizeof(fromAddr);
 

@@ -276,14 +276,8 @@ namespace
         std::cout << "Monitoring for " << intervalSeconds << " seconds. Waiting for server updates...\n";
         const auto deadline = std::chrono::steady_clock::now() + std::chrono::seconds(intervalSeconds);
 
-        while (std::chrono::steady_clock::now() < deadline)
+        auto printMonitorResponse = [&](const std::vector<std::uint8_t> &response)
         {
-            std::vector<std::uint8_t> response;
-            if (!connectionManager.waitForMonitor(response))
-            {
-                continue;
-            }
-
             protocol::Reply reply;
             if (protocol::deserializeReply(response, reply))
             {
@@ -293,6 +287,46 @@ namespace
             {
                 std::cout << "Received non-protocol update (" << response.size()
                           << " bytes): " << formatBytes(response) << '\n';
+            }
+        };
+
+        while (true)
+        {
+            const auto now = std::chrono::steady_clock::now();
+            if (now >= deadline)
+            {
+                break;
+            }
+
+            const auto remaining = std::chrono::duration_cast<std::chrono::milliseconds>(deadline - now);
+            const int timeoutMs = static_cast<int>(std::max<std::int64_t>(1, std::min<std::int64_t>(1000, remaining.count())));
+            if (!connectionManager.setReceiveTimeout(timeoutMs))
+            {
+                std::cout << "Unable to configure monitor receive timeout.\n";
+                break;
+            }
+
+            std::vector<std::uint8_t> response;
+            if (!connectionManager.waitForMonitor(response))
+            {
+                continue;
+            }
+
+            printMonitorResponse(response);
+        }
+
+        // Drain any monitor updates that arrived just before the interval expired.
+        if (connectionManager.setReceiveTimeout(50))
+        {
+            while (true)
+            {
+                std::vector<std::uint8_t> response;
+                if (!connectionManager.waitForMonitor(response))
+                {
+                    break;
+                }
+
+                printMonitorResponse(response);
             }
         }
 

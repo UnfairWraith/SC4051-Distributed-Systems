@@ -77,14 +77,16 @@ public final class BankServer {
             }
 
             Protocol.Reply reply;
+            boolean bypassReplyLoss = false;
             try {
+                bypassReplyLoss = isMonitorRequest(packet.getData(), packet.getLength());
                 reply = handleRequest(packet.getData(), packet.getLength(), clientAddress);
             } catch (Exception ex) {
                 reply = new Protocol.Reply(0, Protocol.STATUS_ERROR,
                         "The server could not understand the request: " + ex.getMessage());
             }
 
-            sendReply(clientAddress, reply);
+            sendReply(clientAddress, reply, bypassReplyLoss);
         }
     }
 
@@ -268,9 +270,19 @@ public final class BankServer {
                     "The password for this account is incorrect.");
         }
 
-        String message = String.join("\n", account.getHistory());
-        if (message.isEmpty()) {
+        String message;
+        List<String> history = account.getHistory();
+        if (history.isEmpty()) {
             message = "No transaction history is available for this account.";
+        } else {
+            StringBuilder messageBuilder = new StringBuilder("Transaction History");
+            for (int index = 0; index < history.size(); index++) {
+                messageBuilder.append("\n")
+                        .append(index + 1)
+                        .append(". ")
+                        .append(history.get(index));
+            }
+            message = messageBuilder.toString();
         }
 
         return new Protocol.Reply(requestId, Protocol.STATUS_SUCCESS, message);
@@ -346,15 +358,16 @@ public final class BankServer {
 
             Protocol.Reply update = new Protocol.Reply(0, Protocol.STATUS_UPDATE, updateMessage);
             try {
-                sendReply(registration.clientAddress, update);
+                sendReply(registration.clientAddress, update, true);
             } catch (Exception ex) {
                 System.err.println("Failed to send monitor update: " + ex.getMessage());
             }
         }
     }
 
-    private void sendReply(SocketAddress clientAddress, Protocol.Reply reply) throws Exception {
-        if (shouldDrop(replyLossRate)) {
+    private void sendReply(SocketAddress clientAddress, Protocol.Reply reply, boolean bypassReplyLoss)
+            throws Exception {
+        if (!bypassReplyLoss && reply.getStatus() != Protocol.STATUS_UPDATE && shouldDrop(replyLossRate)) {
             System.out.println("Simulated reply loss for " + clientAddress);
             return;
         }
@@ -373,6 +386,16 @@ public final class BankServer {
 
     private String formatMoney(double value) {
         return String.format("%.2f", value);
+    }
+
+    private boolean isMonitorRequest(byte[] data, int length) {
+        try {
+            Protocol.Reader reader = new Protocol.Reader(data, length);
+            reader.readInt();
+            return reader.readInt() == Protocol.OP_MONITOR;
+        } catch (Exception ex) {
+            return false;
+        }
     }
 
     private boolean shouldDrop(double lossRate) {

@@ -70,6 +70,10 @@ public final class Protocol {
             this.message = message;
         }
 
+        public int getStatus() {
+            return status;
+        }
+
         public byte[] toBytes() {
             byte[] messageBytes = message.getBytes(StandardCharsets.UTF_8);
             ByteBuffer buffer = ByteBuffer
