@@ -4,16 +4,16 @@
             <root>
                 <mxCell id="0"/>
                 <mxCell id="1" parent="0"/>
-                <mxCell id="5" value="requestId: int&lt;div&gt;4 bytes&lt;/div&gt;" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+                <mxCell id="5" value="Request Id" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
                     <mxGeometry x="40" y="40" width="160" height="240" as="geometry"/>
                 </mxCell>
-                <mxCell id="6" value="status: int&lt;div&gt;4 bytes&lt;/div&gt;" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+                <mxCell id="6" value="Status" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
                     <mxGeometry x="200" y="40" width="160" height="60" as="geometry"/>
                 </mxCell>
-                <mxCell id="14" value="messageBytes.length: int&lt;div&gt;4 bytes&lt;/div&gt;" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+                <mxCell id="14" value="Length" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
                     <mxGeometry x="360" y="40" width="160" height="240" as="geometry"/>
                 </mxCell>
-                <mxCell id="15" value="message: byte[]" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+                <mxCell id="15" value="Message Content" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
                     <mxGeometry x="520" y="40" width="320" height="60" as="geometry"/>
                 </mxCell>
                 <mxCell id="16" value="Success: 0" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
