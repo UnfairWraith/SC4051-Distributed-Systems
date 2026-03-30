@@ -1,0 +1,40 @@
+<mxfile host="65bd71144e">
+    <diagram id="z70JsV3sr7UYXjxr7UqM" name="Page-1">
+        <mxGraphModel dx="1148" dy="619" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
+            <root>
+                <mxCell id="0"/>
+                <mxCell id="1" parent="0"/>
+                <mxCell id="5" value="requestId: int&lt;div&gt;4 bytes&lt;/div&gt;" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+                    <mxGeometry x="40" y="40" width="160" height="240" as="geometry"/>
+                </mxCell>
+                <mxCell id="6" value="status: int&lt;div&gt;4 bytes&lt;/div&gt;" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+                    <mxGeometry x="200" y="40" width="160" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="14" value="messageBytes.length: int&lt;div&gt;4 bytes&lt;/div&gt;" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+                    <mxGeometry x="360" y="40" width="160" height="240" as="geometry"/>
+                </mxCell>
+                <mxCell id="15" value="message: byte[]" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+                    <mxGeometry x="520" y="40" width="320" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="16" value="Success: 0" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+                    <mxGeometry x="200" y="100" width="160" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="17" value="Error: 1" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+                    <mxGeometry x="200" y="160" width="160" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="18" value="Update: 2" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+                    <mxGeometry x="200" y="220" width="160" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="19" value="Success Message" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+                    <mxGeometry x="520" y="100" width="320" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="21" value="Error Message" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+                    <mxGeometry x="520" y="160" width="320" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="22" value="Update Message" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+                    <mxGeometry x="520" y="220" width="320" height="60" as="geometry"/>
+                </mxCell>
+            </root>
+        </mxGraphModel>
+    </diagram>
+</mxfile>
