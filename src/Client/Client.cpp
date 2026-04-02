@@ -25,6 +25,7 @@ namespace
         "EGP", "CZK", "HUF", "ILS", "CLP", "PKR", "VND", "PHP", "KWD", "QAR",
         "MAD"};
 
+    // Reads the server IP from the command line arguments.
     std::string parseServerIp(int argc, char *argv[])
     {
         if (argc < 2)
@@ -35,6 +36,7 @@ namespace
         return argv[1];
     }
 
+    // Displays a prompt label and returns the user's input line.
     std::string prompt(const std::string &label)
     {
         std::string value;
@@ -43,6 +45,7 @@ namespace
         return value;
     }
 
+    // Normalizes a currency code to uppercase before validation.
     std::string normalizeCurrency(std::string value)
     {
         // Match the server's validation by treating currency codes as uppercase values.
@@ -51,11 +54,13 @@ namespace
         return value;
     }
 
+    // Checks whether the given currency is supported by the client.
     bool isValidCurrency(const std::string &currency)
     {
         return std::find(currencyList.begin(), currencyList.end(), currency) != currencyList.end();
     }
 
+    // Re-prompts until the user enters a supported currency code.
     std::string promptCurrency(const std::string &label)
     {
         while (true)
@@ -70,6 +75,7 @@ namespace
         }
     }
 
+    // Re-prompts until the user enters a valid unsigned integer.
     std::uint32_t promptUint32(const std::string &label)
     {
         while (true)
@@ -87,6 +93,7 @@ namespace
         }
     }
 
+    // Re-prompts until the user enters a valid floating-point value.
     double promptDouble(const std::string &label)
     {
         while (true)
@@ -104,12 +111,14 @@ namespace
         }
     }
 
+    // Creates the common request header for a new outbound operation.
     std::vector<std::uint8_t> createRequestHeader(protocol::Operation operation)
     {
         // Each request starts with a request id and operation code for duplicate detection.
         return protocol::createRequestHeader(reqId++, operation);
     }
 
+    // Prints the list of available banking operations.
     void showMenu()
     {
         std::cout << "\nMenu:\n"
@@ -124,6 +133,7 @@ namespace
                   << "Choice: ";
     }
 
+    // Builds the full request payload for the selected menu option.
     std::vector<std::uint8_t> buildRequest(int choice)
     {
         // Fields are appended in the exact order the Java server expects to unmarshal them.
@@ -198,6 +208,7 @@ namespace
         }
     }
 
+    // Extracts the monitor duration from an encoded monitor request.
     std::uint32_t extractMonitorIntervalSeconds(const std::vector<std::uint8_t> &request)
     {
         // Re-read the original monitor request so the client knows how long to block for updates.
@@ -222,6 +233,7 @@ namespace
         return intervalSeconds;
     }
 
+    // Converts a reply status enum into a readable label.
     std::string replyStatusToString(protocol::ReplyStatus status)
     {
         switch (status)
@@ -237,6 +249,7 @@ namespace
         }
     }
 
+    // Formats a byte buffer as hexadecimal text for debugging output.
     std::string formatBytes(const std::vector<std::uint8_t> &buffer)
     {
         // Hex output is useful when checking the marshalled packet format by hand.
@@ -255,6 +268,7 @@ namespace
         return output.str();
     }
 
+    // Prints the user-facing message from a decoded server reply.
     void printReply(const protocol::Reply &reply)
     {
         // std::cout << "Reply requestId=" << reply.requestId
@@ -264,6 +278,7 @@ namespace
         std::cout << reply.message << '\n';
     }
 
+    // Waits for and prints monitor updates until the interval expires.
     void runMonitorLoop(ConnectionManager &connectionManager, std::uint32_t intervalSeconds)
     {
         if (!connectionManager.setReceiveTimeout(1000))
@@ -335,6 +350,7 @@ namespace
     }
 }
 
+// Starts the client, sends user requests, and displays server responses.
 int main(int argc, char *argv[])
 {
     const std::string serverIp = parseServerIp(argc, argv);

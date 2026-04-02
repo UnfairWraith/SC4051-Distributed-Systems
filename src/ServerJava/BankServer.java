@@ -28,6 +28,7 @@ public final class BankServer {
     private final Map<String, Protocol.Reply> replyHistory = new HashMap<>();
     private int nextAccountNumber = 1001;
 
+    // Creates a UDP bank server with the selected invocation mode and loss settings.
     public BankServer(int port, InvocationMode invocationMode, double requestLossRate, double replyLossRate)
             throws Exception {
         this.socket = new DatagramSocket(port);
@@ -36,6 +37,7 @@ public final class BankServer {
         this.replyLossRate = replyLossRate;
     }
 
+    // Parses startup arguments, creates the server, and starts the receive loop.
     public static void main(String[] args) throws Exception {
         int port = DEFAULT_PORT;
         InvocationMode invocationMode = InvocationMode.AT_MOST_ONCE;
@@ -62,6 +64,7 @@ public final class BankServer {
         server.run();
     }
 
+    // Receives UDP requests, processes them, and sends the corresponding replies.
     public void run() throws Exception {
         while (true) {
             byte[] buffer = new byte[MAX_PACKET_SIZE];
@@ -90,6 +93,7 @@ public final class BankServer {
         }
     }
 
+    // Decodes one request, dispatches it to the correct handler, and caches replies if needed.
     private Protocol.Reply handleRequest(byte[] data, int length, SocketAddress clientAddress) throws Exception {
         Protocol.Reader reader = new Protocol.Reader(data, length);
         int requestId = reader.readInt();
@@ -124,10 +128,12 @@ public final class BankServer {
         return reply;
     }
 
+    // Builds a stable key used to detect duplicate requests from the same client.
     private String buildRequestKey(SocketAddress clientAddress, int requestId) {
         return clientAddress.toString() + "#" + requestId;
     }
 
+    // Creates a new account after validating the open-account request fields.
     private Protocol.Reply handleOpen(int requestId, Protocol.Reader reader) {
         String name = reader.readString();
         String password = reader.readString();
@@ -153,6 +159,7 @@ public final class BankServer {
         return new Protocol.Reply(requestId, Protocol.STATUS_SUCCESS, message);
     }
 
+    // Closes an existing account after validating the owner credentials.
     private Protocol.Reply handleClose(int requestId, Protocol.Reader reader) {
         String name = reader.readString();
         int accountNumber = reader.readInt();
@@ -174,6 +181,7 @@ public final class BankServer {
         return new Protocol.Reply(requestId, Protocol.STATUS_SUCCESS, message);
     }
 
+    // Deposits funds into an owned account after validating currency and amount.
     private Protocol.Reply handleDeposit(int requestId, Protocol.Reader reader) {
         String name = reader.readString();
         int accountNumber = reader.readInt();
@@ -206,6 +214,7 @@ public final class BankServer {
         return new Protocol.Reply(requestId, Protocol.STATUS_SUCCESS, message);
     }
 
+    // Withdraws funds from an owned account after validating balance and inputs.
     private Protocol.Reply handleWithdraw(int requestId, Protocol.Reader reader) {
         String name = reader.readString();
         int accountNumber = reader.readInt();
@@ -242,6 +251,7 @@ public final class BankServer {
         return new Protocol.Reply(requestId, Protocol.STATUS_SUCCESS, message);
     }
 
+    // Registers or refreshes a client for monitor updates during the requested interval.
     private Protocol.Reply handleMonitor(int requestId, Protocol.Reader reader, SocketAddress clientAddress) {
         int intervalSeconds = reader.readInt();
         if (intervalSeconds <= 0) {
@@ -256,6 +266,7 @@ public final class BankServer {
         return new Protocol.Reply(requestId, Protocol.STATUS_SUCCESS, message);
     }
 
+    // Returns the transaction history for an account after password validation.
     private Protocol.Reply handleHistory(int requestId, Protocol.Reader reader) {
         int accountNumber = reader.readInt();
         String password = reader.readString();
@@ -288,6 +299,7 @@ public final class BankServer {
         return new Protocol.Reply(requestId, Protocol.STATUS_SUCCESS, message);
     }
 
+    // Transfers funds between two accounts after validating both endpoints and the amount.
     private Protocol.Reply handleTransfer(int requestId, Protocol.Reader reader) {
         int fromAccountNumber = reader.readInt();
         String password = reader.readString();
@@ -337,6 +349,7 @@ public final class BankServer {
         return new Protocol.Reply(requestId, Protocol.STATUS_SUCCESS, message);
     }
 
+    // Returns the account only when the account number and owner credentials match.
     private Account validateOwnedAccount(int accountNumber, String name, String password) {
         Account account = accounts.get(accountNumber);
         if (account == null) {
@@ -345,6 +358,7 @@ public final class BankServer {
         return account.matchesOwner(name, password) ? account : null;
     }
 
+    // Sends update messages to active monitor clients and removes expired registrations.
     private void notifyMonitors(String updateMessage) {
         Instant now = Instant.now();
         Iterator<MonitorRegistration> iterator = monitors.iterator();
@@ -365,6 +379,7 @@ public final class BankServer {
         }
     }
 
+    // Sends one reply datagram, optionally bypassing the simulated reply-loss rule.
     private void sendReply(SocketAddress clientAddress, Protocol.Reply reply, boolean bypassReplyLoss)
             throws Exception {
         if (!bypassReplyLoss && reply.getStatus() != Protocol.STATUS_UPDATE && shouldDrop(replyLossRate)) {
@@ -384,10 +399,12 @@ public final class BankServer {
                 " raw bytes");
     }
 
+    // Formats monetary values with two decimal places for reply messages.
     private String formatMoney(double value) {
         return String.format("%.2f", value);
     }
 
+    // Checks whether a raw request packet is a monitor request.
     private boolean isMonitorRequest(byte[] data, int length) {
         try {
             Protocol.Reader reader = new Protocol.Reader(data, length);
@@ -398,10 +415,12 @@ public final class BankServer {
         }
     }
 
+    // Randomly decides whether to drop a packet based on the configured loss rate.
     private boolean shouldDrop(double lossRate) {
         return lossRate > 0.0 && random.nextDouble() < lossRate;
     }
 
+    // Parses and validates a command-line loss rate value.
     private static double parseLossRate(String argument, String label) {
         double value = Double.parseDouble(argument);
         if (value < 0.0 || value > 1.0) {
@@ -410,6 +429,7 @@ public final class BankServer {
         return value;
     }
 
+    // Converts a currency code string into the corresponding enum value.
     private Currency parseCurrency(String currency) {
         try {
             return Currency.valueOf(currency.toUpperCase(Locale.ROOT));
@@ -422,6 +442,7 @@ public final class BankServer {
         private final SocketAddress clientAddress;
         private final Instant expiresAt;
 
+        // Stores one client's monitor subscription and its expiry time.
         private MonitorRegistration(SocketAddress clientAddress, Instant expiresAt) {
             this.clientAddress = clientAddress;
             this.expiresAt = expiresAt;
@@ -434,10 +455,12 @@ public final class BankServer {
 
         private final String label;
 
+        // Stores the human-readable label used for this invocation mode.
         InvocationMode(String label) {
             this.label = label;
         }
 
+        // Maps a command-line argument to the server's invocation mode enum.
         private static InvocationMode fromArgument(String argument) {
             return "at-least-once".equals(argument) ? AT_LEAST_ONCE : AT_MOST_ONCE;
         }

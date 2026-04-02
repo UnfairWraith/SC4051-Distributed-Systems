@@ -8,6 +8,7 @@ namespace protocol
     namespace
     {
 
+        // Converts a 64-bit value from host order to network byte order.
         std::uint64_t hostToNetwork64(std::uint64_t value)
         {
             const std::uint32_t lowPart = htonl(static_cast<std::uint32_t>(value & 0xFFFFFFFFULL));
@@ -15,6 +16,7 @@ namespace protocol
             return (static_cast<std::uint64_t>(lowPart) << 32) | highPart;
         }
 
+        // Converts a 64-bit value from network order back to host byte order.
         std::uint64_t networkToHost64(std::uint64_t value)
         {
             const std::uint32_t lowPart = ntohl(static_cast<std::uint32_t>(value & 0xFFFFFFFFULL));
@@ -24,6 +26,7 @@ namespace protocol
 
     } // namespace
 
+    // Appends a 32-bit unsigned integer to the byte buffer in network order.
     void appendUint32(std::vector<std::uint8_t> &buffer, std::uint32_t value)
     {
         const std::uint32_t networkValue = htonl(value);
@@ -31,6 +34,7 @@ namespace protocol
         buffer.insert(buffer.end(), bytes, bytes + sizeof(networkValue));
     }
 
+    // Appends a double value to the byte buffer using a network-order bit pattern.
     void appendDouble(std::vector<std::uint8_t> &buffer, double value)
     {
         static_assert(sizeof(double) == sizeof(std::uint64_t), "Unexpected double size.");
@@ -43,6 +47,7 @@ namespace protocol
         buffer.insert(buffer.end(), bytes, bytes + sizeof(rawValue));
     }
 
+    // Appends a length-prefixed UTF-8 string to the byte buffer.
     void appendString(std::vector<std::uint8_t> &buffer, const std::string &value)
     {
         appendUint32(buffer, static_cast<std::uint32_t>(value.size()));
@@ -50,6 +55,7 @@ namespace protocol
         buffer.insert(buffer.end(), bytes, bytes + value.size());
     }
 
+    // Reads a 32-bit unsigned integer from the buffer and advances the offset.
     bool readUint32(const std::vector<std::uint8_t> &buffer, std::size_t &offset, std::uint32_t &value)
     {
         if (offset + sizeof(std::uint32_t) > buffer.size())
@@ -64,6 +70,7 @@ namespace protocol
         return true;
     }
 
+    // Reads a double value from the buffer and advances the offset.
     bool readDouble(const std::vector<std::uint8_t> &buffer, std::size_t &offset, double &value)
     {
         if (offset + sizeof(std::uint64_t) > buffer.size())
@@ -79,6 +86,7 @@ namespace protocol
         return true;
     }
 
+    // Reads a length-prefixed string from the buffer and advances the offset.
     bool readString(const std::vector<std::uint8_t> &buffer, std::size_t &offset, std::string &value)
     {
         std::uint32_t stringLength = 0;
@@ -97,6 +105,7 @@ namespace protocol
         return true;
     }
 
+    // Creates the common request header containing the request id and operation id.
     std::vector<std::uint8_t> createRequestHeader(std::uint32_t requestId, Operation operation)
     {
         std::vector<std::uint8_t> request;
@@ -105,6 +114,7 @@ namespace protocol
         return request;
     }
 
+    // Serializes a reply object into the agreed wire format.
     std::vector<std::uint8_t> serializeReply(const Reply &reply)
     {
         std::vector<std::uint8_t> buffer;
@@ -114,6 +124,7 @@ namespace protocol
         return buffer;
     }
 
+    // Parses a reply from raw bytes and validates that the packet is fully consumed.
     bool deserializeReply(const std::vector<std::uint8_t> &buffer, Reply &reply)
     {
         std::size_t offset = 0;

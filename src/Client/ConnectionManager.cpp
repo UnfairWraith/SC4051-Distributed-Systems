@@ -4,6 +4,7 @@
 #include <iostream>
 #include <ws2tcpip.h>
 
+// Initializes the UDP client socket and stores the server endpoint.
 ConnectionManager::ConnectionManager(const std::string& serverIp, int serverPort) 
     : serverIp(serverIp), serverPort(serverPort), clientSocket(INVALID_SOCKET) {
     // Prepare the UDP client socket and the known server endpoint once at startup.
@@ -14,6 +15,7 @@ ConnectionManager::ConnectionManager(const std::string& serverIp, int serverPort
     configureDefaultTimeout();
 }
 
+// Releases the client socket and shuts down Winsock resources.
 ConnectionManager::~ConnectionManager() {
     if (clientSocket != INVALID_SOCKET) {
         closesocket(clientSocket);
@@ -22,6 +24,7 @@ ConnectionManager::~ConnectionManager() {
     cleanupWinsock();
 }
 
+// Sends one request and retries until a matching reply arrives or attempts run out.
 bool ConnectionManager::sendAndReceive(
     const std::vector<std::uint8_t>& message,
     std::vector<std::uint8_t>& response,
@@ -54,6 +57,7 @@ bool ConnectionManager::sendAndReceive(
     return false;
 }
 
+// Returns queued monitor updates first, then waits for a fresh datagram if needed.
 bool ConnectionManager::waitForMonitor(std::vector<std::uint8_t>& response) {
     if (!pendingMonitorUpdates.empty()) {
         response = std::move(pendingMonitorUpdates.front());
@@ -64,6 +68,7 @@ bool ConnectionManager::waitForMonitor(std::vector<std::uint8_t>& response) {
     return receiveResponse(response);
 }
 
+// Starts the Winsock library before any socket operations are used.
 void ConnectionManager::initializeWinsock() {
     WSADATA wsaData;
     int result = WSAStartup(MAKEWORD(2, 2), &wsaData);
@@ -73,10 +78,12 @@ void ConnectionManager::initializeWinsock() {
     }
 }
 
+// Shuts down the Winsock library after client networking is finished.
 void ConnectionManager::cleanupWinsock() {
     WSACleanup();
 }
 
+// Creates the UDP socket used for all client communication.
 void ConnectionManager::createSocket() {
     // UDP communication uses a datagram socket instead of a TCP stream socket.
     clientSocket = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
@@ -87,6 +94,7 @@ void ConnectionManager::createSocket() {
     }
 }
 
+// Parses and stores the destination server IP address and port.
 void ConnectionManager::configureServerAddress() {
     // Store the server IP and port once so sendto() can reuse them for every request.
     ZeroMemory(&serverAddr, sizeof(serverAddr));
@@ -101,6 +109,7 @@ void ConnectionManager::configureServerAddress() {
     }
 }
 
+// Binds the client socket to an ephemeral local port chosen by the OS.
 void ConnectionManager::bindSocket() {
     sockaddr_in localAddr;
     ZeroMemory(&localAddr, sizeof(localAddr));
@@ -117,10 +126,12 @@ void ConnectionManager::bindSocket() {
     }
 }
 
+// Applies the default receive timeout used for normal request handling.
 void ConnectionManager::configureDefaultTimeout() {
     setReceiveTimeout(5000);
 }
 
+// Updates the socket receive timeout so recvfrom can fail fast on loss.
 bool ConnectionManager::setReceiveTimeout(int timeoutMilliseconds) {
     // Socket-level timeouts let recvfrom() return when a reply is lost.
     DWORD timeout = static_cast<DWORD>(timeoutMilliseconds);
@@ -140,6 +151,7 @@ bool ConnectionManager::setReceiveTimeout(int timeoutMilliseconds) {
     return true;
 }
 
+// Sends one marshalled request datagram to the configured server.
 bool ConnectionManager::sendRequest(const std::vector<std::uint8_t>& message) {
     // The client sends raw marshalled bytes; the server handles decoding.
     int result = sendto(
@@ -159,6 +171,7 @@ bool ConnectionManager::sendRequest(const std::vector<std::uint8_t>& message) {
     return true;
 }
 
+// Receives a single UDP datagram and stores its raw bytes in the response buffer.
 bool ConnectionManager::receiveResponse(std::vector<std::uint8_t>& response) {
     std::uint8_t buffer[4096];
     sockaddr_in fromAddr;
@@ -190,6 +203,7 @@ bool ConnectionManager::receiveResponse(std::vector<std::uint8_t>& response) {
     return false;
 }
 
+// Waits until a non-monitor reply with the expected request id is received.
 bool ConnectionManager::receiveMatchingReply(std::uint32_t expectedRequestId, std::vector<std::uint8_t>& response) {
     while (true) {
         std::vector<std::uint8_t> candidate;

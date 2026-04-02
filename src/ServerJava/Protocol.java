@@ -17,26 +17,31 @@ public final class Protocol {
     public static final int STATUS_ERROR = 1;
     public static final int STATUS_UPDATE = 2;
 
+    // Prevents instantiation of this protocol utility class.
     private Protocol() {
     }
 
     public static final class Reader {
         private final ByteBuffer buffer;
 
+        // Wraps an incoming datagram in a big-endian buffer for sequential reads.
         public Reader(byte[] data, int length) {
             this.buffer = ByteBuffer.wrap(data, 0, length).order(ByteOrder.BIG_ENDIAN);
         }
 
+        // Reads the next 32-bit integer field from the request buffer.
         public int readInt() {
             ensureRemaining(Integer.BYTES);
             return buffer.getInt();
         }
 
+        // Reads the next double field from the request buffer.
         public double readDouble() {
             ensureRemaining(Double.BYTES);
             return buffer.getDouble();
         }
 
+        // Reads a length-prefixed UTF-8 string from the request buffer.
         public String readString() {
             int length = readInt();
             if (length < 0) {
@@ -48,10 +53,12 @@ public final class Protocol {
             return new String(bytes, StandardCharsets.UTF_8);
         }
 
+        // Reports whether unread bytes remain after parsing a request.
         public boolean hasRemaining() {
             return buffer.hasRemaining();
         }
 
+        // Fails fast if the buffer does not contain enough bytes for the next field.
         private void ensureRemaining(int required) {
             if (buffer.remaining() < required) {
                 throw new IllegalArgumentException("Malformed packet: insufficient bytes.");
@@ -64,16 +71,19 @@ public final class Protocol {
         private final int status;
         private final String message;
 
+        // Creates a reply object with the given request id, status, and message.
         public Reply(int requestId, int status, String message) {
             this.requestId = requestId;
             this.status = status;
             this.message = message;
         }
 
+        // Returns the reply status so callers can apply special handling.
         public int getStatus() {
             return status;
         }
 
+        // Serializes the reply into the agreed binary wire format.
         public byte[] toBytes() {
             byte[] messageBytes = message.getBytes(StandardCharsets.UTF_8);
             ByteBuffer buffer = ByteBuffer
